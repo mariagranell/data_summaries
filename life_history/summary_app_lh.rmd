@@ -1,0 +1,108 @@
+---
+title: "Life history summary app"
+output: html_document
+runtime: shiny
+---
+
+```{r echo = FALSE}
+
+#directory
+setwd("/Users/mariagranell/Repositories/data_summaries/life_history")
+
+#packages
+library(shiny)
+library(magrittr) # needs to be run every time you start R and want to use %>%
+library(dplyr)    # alternatively, this also loads %>%
+library(ggplot2)
+library(wesanderson) # nice colours
+wescolours <- wes_palette("Zissou1")
+#clean the Sex column on "" an "f".
+lh$Sex[lh$Sex==""] <- NA
+lh$Sex[lh$Sex=="f"] <- "F"
+
+#make chr, factors
+lh <- within(lh,{
+  DOB<-as.Date(format(as.POSIXct(DOB, format="%d/%m/%Y"), "%Y-%m-%d"))
+  FirstRecorded<-as.Date(format(as.POSIXct(FirstRecorded, format="%d/%m/%Y"), "%Y-%m-%d"))
+  LastSeen1<-as.Date(format(as.POSIXct(LastSeen1, format="%d/%m/%Y"), "%Y-%m-%d"))
+  LastSeen2<-as.Date(format(as.POSIXct(LastSeen2, format="%d/%m/%Y"), "%Y-%m-%d"))
+  Sex<-as.factor(Sex)
+})
+
+#CALCULATE IF THEY ARE MOTHERS
+lh$IsMother <- lh$Individual %in% lh$Mother
+
+#FEMALES AGE
+
+#Subset the females lh data
+lh_females<- lh[lh$Sex== "F",]
+lh_females<- lh_females[!is.na(lh_females$Sex),]
+lh_females<- subset(lh_females, select = -c(Nicknames, EarMark)) #remove the columns that are meaningless
+
+#The goal is the have a first date and an ending date and substract between them
+
+#FIRST RECORDED
+#I will remove the individuals that don´t have a First recorded sighting
+lh_females <- lh_females[!is.na(lh_females$FirstRecorded),]
+
+#CURRENT LAST DATE
+#check how many have a last date
+lh_females$mortality <- ifelse(is.na(lh_females$LastSeen1), "alive", "dead")
+
+#create the current last date collumn
+lh_females$CurrentLastSeen <- lh_females$LastSeen1 #just put the last seen date if that is the case
+lh_females$CurrentLastSeen <- as.character(lh_females$CurrentLastSeen) #rename the collum as a charachter to be able to add the Sys.date()
+
+currentDate <- as.character(Sys.Date()) #get the Sys.Date() as a chr to be able to include it
+lh_females$CurrentLastSeen[lh_females$mortality == "alive"] <- currentDate
+lh_females$CurrentLastSeen <- as.Date(lh_females$CurrentLastSeen) #make everything as data once they are all the in the same format.
+
+#CALCULATE THE AGE
+
+lh_females$AgeInDays <- as.numeric(difftime(lh_females$CurrentLastSeen, lh_females$FirstRecorded), units="days")
+lh_females$AgeInYears <- lh_females$AgeInDays *0.00273973
+x <- lh_females$AgeInYears
+#-----------------
+  # Define UI for the application ----
+ui <- fluidPage(
+  titlePanel("Females age (bad data)"),
+
+  #sider bar pannel
+  sidebarLayout(
+    sidebarPanel(
+      Position = "Left",
+
+      #create a slidebar range
+      sliderInput("range", "Age in years",
+                  min= -0.3, max= 13, value =c(7,10))
+
+  ),
+
+  #Main pannel to pisplay the outputs
+  mainPanel(
+  # Output: Histogram ----
+  plotOutput("histAge")
+
+)
+)
+)
+
+# Define server logic  ----
+server <- function(input, output) {
+  #select the range with render. this will reduce the computational power,
+  #ie you will only compute it when you need it.
+
+  #Historgram of females age
+
+  output$histAge <- renderPlot({
+    d<-subset(lh_females, between(lh_females$AgeInYears, input$range[1], input$range[2]))
+
+    d %>% ggplot(aes(x=AgeInYears)) +
+      geom_histogram(bins=70, fill= wescolours[1]) +
+      ylab ("Number of females")+
+      xlab ("Age in years")+
+      ggtitle(label="Histogram for Females age")
+  })
+}
+shinyApp(ui, server)
+```
