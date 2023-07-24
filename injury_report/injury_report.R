@@ -1,6 +1,8 @@
 setwd("/Users/mariagranell/Repositories/data_summaries/injury_report/")
 
-#packages
+
+
+#packages ----
 library(magrittr) # needs to be run every time you start R and want to use %>%
 library(dplyr)    # alternatively, this also loads %>%
 library(ggplot2)
@@ -26,3 +28,5 @@ table_summary <- d%>%
   group_by(InjuryType, Consequence)%>%
   tally()
 table_summary
+
+

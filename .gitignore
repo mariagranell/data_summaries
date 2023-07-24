@@ -1,6 +1,13 @@
 # Created by https://www.toptal.com/developers/gitignore/api/r,python,pycharm+iml,intellij
 # Edit at https://www.toptal.com/developers/gitignore?templates=r,python,pycharm+iml,intellij
 
+#ignoore DS
+.DS_Store
+
+# Ignore .idea directory
+life_history/.idea/**
+swab_report/.idea/**
+
 #specic files
 
 *.txt

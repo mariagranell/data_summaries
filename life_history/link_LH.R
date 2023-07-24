@@ -13,18 +13,36 @@ d$sex <- lh
 
 #I am going to calculate the age of the different individuals in the life history.
 #For that I need to create a new column with DOB and last seen
-lh <- read.csv2("/Users/mariagranell/Repositories/data_summaries/life_history/IVP_Lifehistory_020822.csv")
-
 #packages
 library(magrittr) # needs to be run every time you start R and want to use %>%
 library(dplyr)    # alternatively, this also loads %>%
 library(ggplot2)
 library(wesanderson) # nice colours
 
+lh <- read.csv2("/Users/mariagranell/Repositories/data_summaries/life_history/IVP_Lifehistory_020822.csv")
 
-#clean the Sex column on "" an "f".
+# CLEANING LH DATA INCONSISTENCIES -----------
+
+# CLEANING SEX COLUMN
+# clean the Sex column on "" and "f".
 lh$Sex[lh$Sex==""] <- NA
 lh$Sex[lh$Sex=="f"] <- "F"
+
+# add some missing sexes that were named
+
+for (i in seq_len(nrow(lh))){
+  if(is.na(lh$Sex[i])){
+    lh$Sex[i] <- ifelse(nchar(lh$Code[i]) == 3, "M",
+                  ifelse(nchar(lh$Code[i]) == 4, "F", NA))
+
+  }
+}
+
+# check final numbers
+lh%>%
+  group_by(Sex)%>%
+  tally()
+
 
 #make chr, factors
 lh <- within(lh,{
@@ -34,10 +52,6 @@ lh <- within(lh,{
              LastSeen2<-as.Date(format(as.POSIXct(LastSeen2, format="%d/%m/%Y"), "%Y-%m-%d"))
              Sex<-as.factor(Sex)
             })
-
-lh%>%
-  group_by(Sex)%>%
-  tally()
 
 #CALCULATE IF THEY ARE MOTHERS
 lh$IsMother <- lh$Individual %in% lh$Mother
@@ -95,5 +109,37 @@ lh_females%>%
   tally()
 
 error <- subset(lh_females, lh_females$AgeCategory== "baby" & lh_females$IsMother==T)
+
+
+# EXPORT CLEAN LH
+
+write.csv(lh, "/Users/mariagranell/Repositories/data_summaries/life_history/lh_clean.csv", row.names = FALSE)
+
+# GOAL 2----------------------
+
+library(rstatix)
+
+d <- read.csv("/Users/mariagranell/Repositories/phllipe_vulloid/tbl_Creation/tbl_maria/factchecked_LH.csv")
+head(d)
+
+sum <- d %>%
+      group_by(Sex) %>% #grouping variable (sex)
+      get_summary_stats(Age_yr) #summary of continues variables 'feb23age'
+
+sum
+
+summary_stats_all <- d %>%
+  filter(Age_class == "adult") %>%
+      group_by(Sex) %>% #grouping variable (sex)
+      get_summary_stats(Age_yr) #summary of continues variables 'feb23age'
+
+summary_stats_all
+
+#age at death across sex
+d %>%
+  filter(Fate_probable == "dead") %>%
+   filter(Age_class == "juvenile") %>%
+  group_by(Sex) %>% #grouping variable (sex)
+  get_summary_stats(Age_yr)
 
 

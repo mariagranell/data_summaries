@@ -1,0 +1,58 @@
+---
+title: "Descriptive statistics Life history"
+output: html_notebook
+---
+
+I will be following the following [course](https://raisahernandez.github.io/PrimatePopEcolTraining/M.2_pre.html).
+And the Vervet dataset.
+
+```{r}
+library(rstatix)
+```
+
+The code chunk appears:
+```{r}
+d <- read.csv("/Users/mariagranell/Repositories/phllipe_vulloid/tbl_Creation/tbl_maria/factchecked_LH.csv")
+head(d)
+```
+
+Type any R code in the chunk, for example:
+```{r, echo = F}
+summary_stats_all <- d %>%
+      group_by(Sex) %>% #grouping variable (sex)
+      get_summary_stats(Age_yr) #summary of continues variables 'feb23age'
+
+summary_stats_all
+```
+When is only adults.
+
+```{r, echo = F}
+summary_stats_all <- d %>%
+  filter(Age_class == "adult") %>%
+      group_by(Sex) %>% #grouping variable (sex)
+      get_summary_stats(Age_yr) #summary of continues variables 'feb23age'
+
+summary_stats_all
+```
+
+age at death across sex. it dosen´t seem like there is a difference in death age across sex or age category.
+Although we have very little deaths of juveniles recorded...
+
+```{r, echo = F}
+d %>%
+  filter(Fate_probable == "dead") %>%
+  group_by(Sex) %>% #grouping variable (sex)
+  get_summary_stats(Age_yr)
+
+d %>%
+  filter(Fate_probable == "dead") %>%
+   filter(Age_class == "adult") %>%
+  group_by(Sex) %>% #grouping variable (sex)
+  get_summary_stats(Age_yr)
+
+d %>%
+  filter(Fate_probable == "dead") %>%
+   filter(Age_class == "juvenile") %>%
+  group_by(Sex) %>% #grouping variable (sex)
+  get_summary_stats(Age_yr)
+```
