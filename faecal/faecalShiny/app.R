@@ -17,7 +17,7 @@ library(ggthemr)
 library(stringr)
 library(readxl)
 library(waffle)
-#library(shinydashboard)
+library(shinydashboard)
 
 # library ---------------------
 library(magrittr) # needs to be run every time you start R and want to use %>%
@@ -86,44 +86,59 @@ genetics_plot <- d_genetics %>%
 
 
 # Define the UI for the Shiny app
-ui <- fluidPage(
-    theme = bslib::bs_theme(bootswatch = "united"),
-    #dashboardHeader(title = "Poop lab progress"),
-  titlePanel("Poop Data Analysis"), # App title
-
-  # Sidebar layout with input widgets
-  sidebarLayout(
-    sidebarPanel(
-      # Input widget: Date range selector
-      dateRangeInput(inputId = "date_range",
-                     label = "Select date range:",
-                     start = min(dfield$Date, na.rm = TRUE),
-                     end = max(dfield$Date, na.rm = TRUE)
-      )
+ui <- dashboardPage(
+  dashboardHeader(title = "Poop Data Analysis"),
+  dashboardSidebar(
+    # Input widget: Date range selector
+    dateRangeInput(inputId = "date_range",
+                   label = "Select date range:",
+                   start = min(dfield$Date, na.rm = TRUE),
+                   end = max(dfield$Date, na.rm = TRUE)
     ),
-
+    
     checkboxGroupInput(inputId = "group_filter",
-                         label = "Select Group(s) to include:",
-                         choices = unique(dfield_h$Group),
-                         selected = unique(dfield_h$Group))
+                       label = "Select Group(s) to include:",
+                       choices = unique(dfield_h$Group),
+                       selected = unique(dfield_h$Group))
+  ),
+  dashboardBody(
+    # Output: Plot 1
+    box(
+      title = "Hormones",
+      status = "info", 
+      solidHeader = T,  # This ensures the header has a background color,
+      div("Are we collecting the right amount of poop?", style = "font-size: 14px;"), #subtitle
+      plotOutput(outputId = "hormones_histogram", height = 300)
     ),
-
-    # Main panel to display the plot
-    mainPanel(
-      # Output: Plot 1
-      plotOutput(outputId = "hormones_histogram"),
-
-      # Output: Plot 2
-      plotOutput(outputId = "hormones_sex"),
-
-      # Output: Plot 3
-      plotOutput(outputId = "edna_sex"),
-
-      # Output: Plot 4
-      plotOutput(outputId = "genetics_waffle")
+    
+    # Output: Plot 2
+    box(
+      title = "Hormones",
+      status = "info", 
+      solidHeader = T,  # This ensures the header has a background color,
+      div("Number of hormones samples by sex", style = "font-size: 14px;"), #subtitle
+      plotOutput(outputId = "hormones_sex", height = 300)
+    ),
+    
+    # Output: Plot 3
+    box(
+      title = "eDNA",
+      status = "success", 
+      solidHeader = T,  # This ensures the header has a background color,
+      div("Number of eDNA samples by sex", style = "font-size: 14px;"), #subtitle
+      plotOutput(outputId = "edna_sex", height = 300)
+    ),
+    
+    # Output: Plot 4
+    box(
+      title = "Genetics",
+      status = "danger", 
+      solidHeader = T,  # This ensures the header has a background color,
+      div("Number of individuals that need Genetics", style = "font-size: 14px;"), #subtitle
+      plotOutput(outputId = "genetics_waffle", height = 300)
     )
   )
-
+)
 
 # Define the server logic for the Shiny app
 server <- function(input, output) {
@@ -155,8 +170,8 @@ server <- function(input, output) {
   # Add your customizations below
       labs(x = "Weight of a sample",
            y = "Number of hormone samples",
-           fill = "Are we collecting the right amount of poop?",
-           title = "The dotted line represents a Weight of >= 0.4, i.e. the appropiate amount
+           #fill = "Are we collecting the right amount of poop?",
+           caption = "The dotted line represents a Weight of >= 0.4, i.e. the appropiate amount
            and the % is the amount of correct hormones poop collected"
       ) +
       #scale_y_discrete(position = "left") +
@@ -167,9 +182,9 @@ server <- function(input, output) {
         axis.ticks = element_blank(),
         axis.title = element_text(size = 12, face = "bold"),
         legend.position = "top",
-        #plot.caption = element_text(size = 10, hjust = 0.5),
+        plot.caption = element_text(size = 10, , hjust = 0.5),
         plot.title = element_text(size = 10, hjust = 0.5, vjust = -1, face = "plain"),
-        legend.title = element_text(size = 15, face = "bold"),
+        legend.title = element_blank(),
       )
   })
 
@@ -184,8 +199,8 @@ server <- function(input, output) {
       geom_text(aes(label = n), position = position_dodge(width = 0.9),  hjust = 1.2, vjust = 0.5, colour = "white") +
       ylab("Number of fecal samples") +
       coord_flip() +
-      labs(y = "Number of hormone samples",
-           title = "Fecal hormone samples by Group"
+      labs(y = "Number of hormone samples"
+           #title = "Fecal hormone samples by Group"
       ) +
       theme(
       plot.title = element_text(hjust = 0.5),
@@ -209,8 +224,8 @@ server <- function(input, output) {
     geom_text(aes(label = n), position = position_dodge(width = 0.9), hjust = 1.2, vjust = 0.5, colour = "white") +
       ylab("Number of eDNA samples") +
     coord_flip() +
-    labs(y = "Number of eDNA samples",
-       title = "Fecal eDNA samples by Group"
+    labs(y = "Number of eDNA samples"
+       #title = "Fecal eDNA samples by Group"
     ) +
     theme(
     plot.title = element_text(hjust = 0.5),
@@ -234,14 +249,15 @@ server <- function(input, output) {
   labs(
     x = "",
     y = "",
-    title = "Number of individuals with Genetics completed",
-    subtitle = "The number represent how many individuals are NOT completed / total"
+    #title = "Number of individuals with Genetics completed",
+    #subtitle = "The number represent how many individuals are NOT completed / total"
   ) +
   theme (
     plot.title = element_text(hjust = 0.5),
     plot.subtitle = element_text(hjust = 0.5),
     axis.line = element_blank(),
-    axis.text.x = element_blank()
+    axis.text.x = element_blank(),
+    legend.position = "top",
   ) +
   scale_fill_manual(values = c("No" = red_solarized, "Yes" = blue_solarized))
 
