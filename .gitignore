@@ -8,6 +8,14 @@
 life_history/.idea/**
 swab_report/.idea/**
 
+# Ignore data files
+/Users/mariagranell/Repositories/data_summaries/faecal/faecalShiny/data_faecalShiny
+/Users/mariagranell/Repositories/data_summaries/faecal/faecalShiny/rsconnect
+/Users/mariagranell/Repositories/data_summaries/faecal/faecalShiny/todeploy.R
+faecal/faecalShiny/.idea/
+faecal/faecalShiny/data_faecalShiny/
+faecal/faecalShiny/todeploy.R
+
 #specic files
 
 *.txt

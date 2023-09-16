@@ -14,8 +14,8 @@ library(dplyr)
 library(ggplot2)
 library(lubridate)
 library(ggthemr)
-library(stringr)
 library(readxl)
+library(stringr)
 library(waffle)
 library(shinydashboard)
 
@@ -30,9 +30,9 @@ library(stringr)
 library(waffle)
 
 # path ------------------------
-setwd("/Users/mariagranell/Repositories/hormones/hormone_fecal")
+#setwd("/Users/mariagranell/Repositories/data_summaries/faecal/faecalShiny")
 
-dfield <- read.csv("/Users/mariagranell/Repositories/hormones/hormone_fecal/crybertrackert_2023-07-16.CSV")
+dfield <- read.csv("data_faecalShiny/crybertrackert_2023-07-16.CSV")
 
 dfield <- dfield %>%
   mutate(Date = ymd(Date),
@@ -56,7 +56,7 @@ red_solarized <- "#eb9050"
 # sample 243 appears twice in dlab
 
 #data collected in the lab
-dlab <- read_excel("/Users/mariagranell/Repositories/hormones/hormone_fecal/fecal_hormones_11.06.23.xlsx")
+dlab <- read_excel("data_faecalShiny/fecal_hormones_11.06.23.xlsx")
 dlab <- dlab %>% select(-c("corrected_process_date", "...9")) %>% # ignore warnings
   mutate(wbs = as.numeric(wbs),
          was = as.numeric(was),
@@ -76,7 +76,7 @@ dfield_h <- left_join(dfield, dlab, by = c( "SampleNb" = "n_sample", "SampleType
 dfield_h$appropiate_amount <- ifelse(between(dfield_h$total, 0.3, 0.5), "Appropiate", "Inappropiate")
 
 # GENETICS DATASET
-d_genetics <-  read_excel("/Users/mariagranell/Desktop/IVP/Genetic_samples_overview.xlsx")
+d_genetics <-  read_excel("data_faecalShiny/Genetic_samples_overview.xlsx")
 
 d_genetics <- d_genetics %>% mutate(Complete = na_if(Complete, "Complete?"))
 d_genetics$Complete <- ifelse(is.na(d_genetics$Complete), "No", d_genetics$Complete)
@@ -236,6 +236,7 @@ server <- function(input, output) {
 })
 
 ### GENETICS WAFFLE
+library("plyr")
 
   output$genetics_waffle <- renderPlot({
     filtered_genetics_plot() %>%
